@@ -24,9 +24,9 @@
     <ul id="file-list"></ul>
 
     <script>
-        // Előre megadott GitHub repo név és API token
-        const repoName = 'Apapdlehetnek/File-Web-Server';  // Megadott repo név
-        const token = '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';  // Megadott token
+        // GitHub repo név és API token - Bizalmas adat, használat után töröld a kódot.
+        const repoName = 'Apapdlehetnek/File-Web-Server';
+        const token = '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';
 
         async function uploadFile() {
             const path = document.getElementById('path').value;
@@ -47,7 +47,7 @@
 
             if (response.ok) {
                 document.getElementById('status').innerText = 'Sikeres feltöltés!';
-                loadFiles(); // Frissíti a fájllistát a feltöltés után
+                loadFiles();
             } else {
                 const result = await response.json();
                 document.getElementById('status').innerText = `Hiba: ${result.message}`;
@@ -67,7 +67,7 @@
 
                 if (Array.isArray(files)) {
                     const fileList = document.getElementById('file-list');
-                    fileList.innerHTML = ''; // Törli a korábbi listát
+                    fileList.innerHTML = '';
 
                     files.forEach(file => {
                         if (file.type === 'file') {
