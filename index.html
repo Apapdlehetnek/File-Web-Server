@@ -3,39 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Fájl Feltöltés és Fájl Szerver</title>
+    <title>Fájl Feltöltés és Letöltés</title>
 </head>
 <body>
-    <h1>GitHub Fájl Feltöltés</h1>
+    <h1>Fájl Feltöltés és Letöltés</h1>
 
     <!-- Feltöltési mezők -->
-    <label for="repo">GitHub repó (felhasznalo/repo-neve):</label>
-    <input type="text" id="repo" placeholder="felhasznalo/repo-neve"><br><br>
-
     <label for="path">Fájl elérési útja (pl. feltoltesek/fajl.txt):</label>
     <input type="text" id="path" placeholder="feltoltesek/fajl.txt"><br><br>
 
     <label for="content">Fájl tartalma:</label><br>
     <textarea id="content" rows="4" cols="50" placeholder="Ide írd a fájl tartalmát"></textarea><br><br>
 
-    <label for="token">GitHub API Token:</label>
-    <input type="password" id="token" placeholder="GitHub API Token"><br><br>
+    <button onclick="uploadFile()">Feltöltés</button>
+    <button onclick="loadFiles()">Letöltés</button>
 
-    <button onclick="uploadFile()">Feltöltés GitHub-ra</button>
     <p id="status"></p>
 
-    <h2>Elérhető fájlok a szerveren:</h2>
-    <button onclick="loadFiles()">Frissítés</button>
+    <h2>Elérhető fájlok:</h2>
     <ul id="file-list"></ul>
 
     <script>
+        // Előre megadott GitHub repo név és API token
+        const repoName = 'Apapdlehetnek/File-Web-Server';  // Megadott repo név
+        const token = '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';  // Megadott token
+
         async function uploadFile() {
-            const repo = document.getElementById('repo').value;
             const path = document.getElementById('path').value;
             const content = document.getElementById('content').value;
-            const token = document.getElementById('token').value;
 
-            const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+            const url = `https://api.github.com/repos/${repoName}/contents/${path}`;
             const response = await fetch(url, {
                 method: 'PUT',
                 headers: {
@@ -58,11 +55,14 @@
         }
 
         async function loadFiles() {
-            const repo = document.getElementById('repo').value;
-            const url = `https://api.github.com/repos/${repo}/contents/`;
+            const url = `https://api.github.com/repos/${repoName}/contents/`;
 
             try {
-                const response = await fetch(url);
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 const files = await response.json();
 
                 if (Array.isArray(files)) {
