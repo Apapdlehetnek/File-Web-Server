@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Fájl Feltöltés és Fájl Szerver</title>
+</head>
+<body>
+    <h1>GitHub Fájl Feltöltés</h1>
+
+    <!-- Feltöltési mezők -->
+    <label for="repo">GitHub repó (felhasznalo/repo-neve):</label>
+    <input type="text" id="repo" placeholder="felhasznalo/repo-neve"><br><br>
+
+    <label for="path">Fájl elérési útja (pl. feltoltesek/fajl.txt):</label>
+    <input type="text" id="path" placeholder="feltoltesek/fajl.txt"><br><br>
+
+    <label for="content">Fájl tartalma:</label><br>
+    <textarea id="content" rows="4" cols="50" placeholder="Ide írd a fájl tartalmát"></textarea><br><br>
+
+    <label for="token">GitHub API Token:</label>
+    <input type="password" id="token" placeholder="GitHub API Token"><br><br>
+
+    <button onclick="uploadFile()">Feltöltés GitHub-ra</button>
+    <p id="status"></p>
+
+    <h2>Elérhető fájlok a szerveren:</h2>
+    <button onclick="loadFiles()">Frissítés</button>
+    <ul id="file-list"></ul>
+
+    <script>
+        async function uploadFile() {
+            const repo = document.getElementById('repo').value;
+            const path = document.getElementById('path').value;
+            const content = document.getElementById('content').value;
+            const token = document.getElementById('token').value;
+
+            const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: 'Fájl feltöltve a GitHub API-val',
+                    content: btoa(content),
+                })
+            });
+
+            if (response.ok) {
+                document.getElementById('status').innerText = 'Sikeres feltöltés!';
+                loadFiles(); // Frissíti a fájllistát a feltöltés után
+            } else {
+                const result = await response.json();
+                document.getElementById('status').innerText = `Hiba: ${result.message}`;
+            }
+        }
+
+        async function loadFiles() {
+            const repo = document.getElementById('repo').value;
+            const url = `https://api.github.com/repos/${repo}/contents/`;
+
+            try {
+                const response = await fetch(url);
+                const files = await response.json();
+
+                if (Array.isArray(files)) {
+                    const fileList = document.getElementById('file-list');
+                    fileList.innerHTML = ''; // Törli a korábbi listát
+
+                    files.forEach(file => {
+                        if (file.type === 'file') {
+                            const listItem = document.createElement('li');
+                            const link = document.createElement('a');
+                            link.href = file.download_url;
+                            link.target = '_blank';
+                            link.innerText = file.name;
+                            listItem.appendChild(link);
+                            fileList.appendChild(listItem);
+                        }
+                    });
+                } else {
+                    document.getElementById('status').innerText = 'Nem található fájl a megadott repóban.';
+                }
+            } catch (error) {
+                document.getElementById('status').innerText = 'Hiba történt a fájlok betöltése során.';
+            }
+        }
+    </script>
+</body>
+</html>
