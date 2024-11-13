@@ -1,92 +1,90 @@
-<!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fájl Feltöltés és Letöltés</title>
+    <title>File Szerver</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <style>
+        .dark-mode {
+            background-color: #000;
+            color: #fff;
+            transition: background-color 0.5s, color 0.5s;
+        }
+        .light-mode {
+            background-color: #fff;
+            color: #000;
+            transition: background-color 0.5s, color 0.5s;
+        }
+        .file-server-title {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .file-server-title:hover {
+            cursor: pointer;
+            transform: scale(1.1);
+        }
+        .button {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .file-item:hover {
+            background-color: #1d4ed8;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+    </style>
 </head>
-<body>
-    <h1>Fájl Feltöltés és Letöltés</h1>
+<body class="light-mode">
+    <div class="flex flex-col items-center justify-center min-h-screen">
+        <div id="welcome" class="text-center fade-in">
+            <h1 class="text-4xl font-bold mb-4 animate-pulse">Welcome to the File Szerver</h1>
+        </div>
+        <div id="file-server" class="hidden text-center slide-in">
+            <h1 id="file-server-title" class="text-4xl font-bold mb-4 file-server-title">File Szerver</h1>
+            <div class="flex space-x-4">
+                <button id="upload-button" class="bg-blue-500 text-white px-4 py-2 rounded button">
+                    <i class="fas fa-arrow-up mr-2"></i>Upload
+                </button>
+                <button id="download-button" class="bg-green-500 text-white px-4 py-2 rounded button">
+                    <i class="fas fa-arrow-down mr-2"></i>Download
+                </button>
+            </div>
+            <!-- Google Drive iframe hozzáadása -->
+            <div class="mt-6">
+                <iframe src="https://drive.google.com/drive/folders/1uj-ujuk3t_eJPZU-nERhJeW2i7_T6KEn?usp=sharing" width="100%" height="500px" style="border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+    <div class="absolute top-4 right-4">
+        <button id="toggle-dark-mode" class="text-2xl">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
 
-    <!-- Feltöltési mezők -->
-    <label for="path">Fájl elérési útja (pl. feltoltesek/fajl.txt):</label>
-    <input type="text" id="path" placeholder="feltoltesek/fajl.txt"><br><br>
-
-    <label for="content">Fájl tartalma:</label><br>
-    <textarea id="content" rows="4" cols="50" placeholder="Ide írd a fájl tartalmát"></textarea><br><br>
-
-    <button onclick="uploadFile()">Feltöltés</button>
-    <button onclick="loadFiles()">Letöltés</button>
-
-    <p id="status"></p>
-
-    <h2>Elérhető fájlok:</h2>
-    <ul id="file-list"></ul>
+    <input type="file" id="file-input" class="hidden" />
 
     <script>
-        // GitHub repo név és API token - Bizalmas adat, használat után töröld a kódot.
-        const repoName = 'Apapdlehetnek/File-Web-Server';
-        const token = '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';
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.getElementById('welcome').classList.add('hidden');
+                document.getElementById('file-server').classList.remove('hidden');
+            }, 3000);
 
-        async function uploadFile() {
-            const path = document.getElementById('path').value;
-            const content = document.getElementById('content').value;
-
-            const url = `https://api.github.com/repos/${repoName}/contents/${path}`;
-            const response = await fetch(url, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: 'Fájl feltöltve a GitHub API-val',
-                    content: btoa(content),
-                })
+            const toggleButton = document.getElementById('toggle-dark-mode');
+            toggleButton.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                document.body.classList.toggle('light-mode');
             });
 
-            if (response.ok) {
-                document.getElementById('status').innerText = 'Sikeres feltöltés!';
-                loadFiles();
-            } else {
-                const result = await response.json();
-                document.getElementById('status').innerText = `Hiba: ${result.message}`;
-            }
-        }
-
-        async function loadFiles() {
-            const url = `https://api.github.com/repos/${repoName}/contents/`;
-
-            try {
-                const response = await fetch(url, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                const files = await response.json();
-
-                if (Array.isArray(files)) {
-                    const fileList = document.getElementById('file-list');
-                    fileList.innerHTML = '';
-
-                    files.forEach(file => {
-                        if (file.type === 'file') {
-                            const listItem = document.createElement('li');
-                            const link = document.createElement('a');
-                            link.href = file.download_url;
-                            link.target = '_blank';
-                            link.innerText = file.name;
-                            listItem.appendChild(link);
-                            fileList.appendChild(listItem);
-                        }
-                    });
-                } else {
-                    document.getElementById('status').innerText = 'Nem található fájl a megadott repóban.';
-                }
-            } catch (error) {
-                document.getElementById('status').innerText = 'Hiba történt a fájlok betöltése során.';
-            }
-        }
+            const fileInput = document.getElementById('file-input');
+            document.getElementById('upload-button').addEventListener('click', () => {
+                fileInput.click();
+            });
+        });
     </script>
 </body>
 </html>
